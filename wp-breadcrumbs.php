@@ -12,7 +12,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
         public function __construct($args)
         {
             $args = wp_parse_args($args, array(
-                'text_home'     => 'Home', // text for the 'Home' link
+                'text_home'     => __('Home'), // text for the 'Home' link
                 'text_category' => '%s', // text for a category page
                 'text_search'   => 'Search Results for "%s" Query', // text for a search results page
                 'text_tag'      => 'Posts Tagged "%s"', // text for a tag page
@@ -28,13 +28,13 @@ if (!class_exists('Atf_Breadcrumbs')) {
                 'show_home_link' => 0, // 1 - show the 'Home' link, 0 - don't show
                 'show_title'   => 1, // 1 - show the title for the links, 0 - don't show
                 'show_post_type' => true,
-                'delimiter'   => ' &gt; ', // delimiter between crumbs
-                'before_current'   => '<span class="current">', // tag before the current crumb
-                'after_current'     => '</span>', // tag after the current crumb
+                'delimiter'   => '  ', // delimiter between crumbs
+                'before_current'   => '<li class="active">', // tag before the current crumb
+                'after_current'     => '</li>', // tag after the current crumb
                 'before_crumb' => '<li>',
                 'after_crumb' => '</li>',
-                'before' => '<ul class="breadcrumb" xmlns:v="http://rdf.data-vocabulary.org/#">',
-                'after' => '</ul>',
+                'before' => '<ol class="breadcrumb" xmlns:v="http://rdf.data-vocabulary.org/#">',
+                'after' => '</ol>',
             ));
             /* === OPTIONS === */
 
