@@ -1,36 +1,39 @@
 <?php
 
 
-function breadcrumbs($args=array()) {
+function breadcrumbs($args = array())
+{
     return new Atf_Breadcrumbs($args);
 }
 
 if (!class_exists('Atf_Breadcrumbs')) {
-    class Atf_Breadcrumbs {
+    class Atf_Breadcrumbs
+    {
         public $args = array();
         public $return;
+
         public function __construct($args)
         {
             $args = wp_parse_args($args, array(
-                'text_home'     => __('Home'), // text for the 'Home' link
+                'text_home' => __('Home'), // text for the 'Home' link
                 'text_category' => '%s', // text for a category page
-                'text_search'   => 'Search Results for "%s" Query', // text for a search results page
-                'text_tag'      => 'Posts Tagged "%s"', // text for a tag page
-                'text_author'   => 'Articles Posted by %s', // text for an author page
-                'text_404'      => 'Error 404', // text for the 404 page
-                'show_current'  => 1, // 1 - show current post/page/category title in breadcrumbs, 0 - don't show
+                'text_search' => 'Search Results for "%s" Query', // text for a search results page
+                'text_tag' => 'Posts Tagged "%s"', // text for a tag page
+                'text_author' => 'Articles Posted by %s', // text for an author page
+                'text_404' => 'Error 404', // text for the 404 page
+                'show_current' => 1, // 1 - show current post/page/category title in breadcrumbs, 0 - don't show
                 'post_type_taxonomy' => array(
                     'post' => 'category',
                     'page' => '',
                     'product' => 'product_cat',
                 ),
-                'show_on_home'   => 0, // 1 - show breadcrumbs on the homepage, 0 - don't show
+                'show_on_home' => 0, // 1 - show breadcrumbs on the homepage, 0 - don't show
                 'show_home_link' => 0, // 1 - show the 'Home' link, 0 - don't show
-                'show_title'   => 1, // 1 - show the title for the links, 0 - don't show
+                'show_title' => 1, // 1 - show the title for the links, 0 - don't show
                 'show_post_type' => true,
-                'delimiter'   => '  ', // delimiter between crumbs
-                'before_current'   => '<li class="active">', // tag before the current crumb
-                'after_current'     => '</li>', // tag after the current crumb
+                'delimiter' => '  ', // delimiter between crumbs
+                'before_current' => '<li class="active">', // tag before the current crumb
+                'after_current' => '</li>', // tag after the current crumb
                 'before_crumb' => '<li>',
                 'after_crumb' => '</li>',
                 'before' => '<ol class="breadcrumb" xmlns:v="http://rdf.data-vocabulary.org/#">',
@@ -42,14 +45,14 @@ if (!class_exists('Atf_Breadcrumbs')) {
             /* === END OF OPTIONS === */
 
             global $wp_query, $post;
-            $home_link    = home_url('/');
-            $link_before  = '<span typeof="v:Breadcrumb">';
-            $link_after   = '</span>';
-            $link_attr    = ' rel="v:url" property="v:title"';
-            $link         = $link_before . '<a' . $link_attr . ' href="%1$s">%2$s</a>' . $link_after;
-            $parent_id    = 0;
+            $home_link = home_url('/');
+            $link_before = '<span typeof="v:Breadcrumb">';
+            $link_after = '</span>';
+            $link_attr = ' rel="v:url" property="v:title"';
+            $link = $link_before . '<a' . $link_attr . ' href="%1$s">%2$s</a>' . $link_after;
+            $parent_id = 0;
             $frontpage_id = get_option('page_on_front');
-            $post_types   = array_keys($args[ 'post_type_taxonomy']);
+            $post_types = array_keys($args['post_type_taxonomy']);
 
             if (is_home() || is_front_page()) {
 
@@ -64,7 +67,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
                     if ($frontpage_id == 0 || $parent_id != $frontpage_id) echo $args['delimiter'];
                 }
 
-                if ( is_tax() || is_category() ) {
+                if (is_tax() || is_category()) {
 
                     $queried_obj = get_queried_object();
 
@@ -88,32 +91,32 @@ if (!class_exists('Atf_Breadcrumbs')) {
 
                     echo $cats;
 
-                } elseif ( is_search() ) {
+                } elseif (is_search()) {
                     echo sprintf($link, get_year_link(get_the_time('Y')), get_the_time('Y')) . $args['delimiter'];
                     echo $args['before_current'] . get_the_time('F') . $args['after_current'];
 
-                } elseif ( is_year() ) {
+                } elseif (is_year()) {
                     echo $args['before_current'] . sprintf($args['text_search'], get_search_query()) . $args['after_current'];
 
-                } elseif ( is_day() ) {
+                } elseif (is_day()) {
                     echo sprintf($link, get_year_link(get_the_time('Y')), get_the_time('Y')) . $args['delimiter'];
-                    echo sprintf($link, get_month_link(get_the_time('Y'),get_the_time('m')), get_the_time('F')) . $args['delimiter'];
+                    echo sprintf($link, get_month_link(get_the_time('Y'), get_the_time('m')), get_the_time('F')) . $args['delimiter'];
                     echo $args['before_current'] . get_the_time('d') . $args['after_current'];
 
-                } elseif ( is_month() ) {
+                } elseif (is_month()) {
                     echo sprintf($link, get_year_link(get_the_time('Y')), get_the_time('Y')) . $args['delimiter'];
                     echo $args['before_current'] . get_the_time('F') . $args['after_current'];
 
-                } elseif ( is_year() ) {
+                } elseif (is_year()) {
                     echo $args['before_current'] . get_the_time('Y') . $args['after_current'];
 
-                } elseif ( is_single() && !is_attachment() ) {
+                } elseif (is_single() && !is_attachment()) {
 
                     $post_type = get_post_type();
 
-                    if ( in_array($post_type, $post_types) ) {
+                    if (in_array($post_type, $post_types)) {
 
-                        $cat = get_the_terms( false, $args['post_type_taxonomy'][$post_type] );
+                        $cat = get_the_terms(false, $args['post_type_taxonomy'][$post_type]);
                         $cat = $cat[0];
                         $cats = $args['before_crumb'] . get_category_parents($cat, TRUE, $args['after_crumb'] . $args['delimiter'] . $args['before_crumb']);
                         $cats = substr($cats, 0, (strlen($cats) - strlen($args['delimiter'] . $args['before_crumb'])));
@@ -121,7 +124,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
                         if ($args['show_current']) echo $args['before_current'] . get_the_title() . $args['after_current'];
 
 
-                    } elseif ( $post_type != 'post' ) {
+                    } elseif ($post_type != 'post') {
 
                         if ($args['show_post_type']) {
                             $post_type = get_post_type_object(get_post_type());
@@ -133,7 +136,8 @@ if (!class_exists('Atf_Breadcrumbs')) {
 
                         if ($args['show_current']) echo $args['delimiter'] . $args['before_current'] . get_the_title() . $args['after_current'];
                     } else {
-                        $cat = get_the_category(); $cat = $cat[0];
+                        $cat = get_the_category();
+                        $cat = $cat[0];
                         $cats = get_category_parents($cat, TRUE, $args['delimiter']);
                         if ($args['show_current']) $cats = preg_replace("#^(.+){$args['delimiter']}$#", "$1", $cats);
                         $cats = str_replace('<a', $link_before . '<a' . $link_attr, $cats);
@@ -143,9 +147,10 @@ if (!class_exists('Atf_Breadcrumbs')) {
                         if ($args['show_current']) echo $args['before_current'] . get_the_title() . $args['after_current'];
                     }
 
-                } elseif ( is_attachment() ) {
+                } elseif (is_attachment()) {
                     $parent = get_post($parent_id);
-                    $cat = get_the_category($parent->ID); $cat = $cat[0];
+                    $cat = get_the_category($parent->ID);
+                    $cat = $cat[0];
                     if ($cat) {
                         $cats = get_category_parents($cat, TRUE, $args['delimiter']);
                         $cats = str_replace('<a', $link_before . '<a' . $link_attr, $cats);
@@ -156,10 +161,10 @@ if (!class_exists('Atf_Breadcrumbs')) {
                     printf($link, get_permalink($parent), $parent->post_title);
                     if ($args['show_current']) echo $args['delimiter'] . $args['before_current'] . get_the_title() . $args['after_current'];
 
-                } elseif ( is_page() && !$parent_id ) {
+                } elseif (is_page() && !$parent_id) {
                     if ($args['show_current']) echo $args['before_current'] . get_the_title() . $args['after_current'];
 
-                } elseif ( is_page() && $parent_id ) {
+                } elseif (is_page() && $parent_id) {
                     if ($parent_id != $frontpage_id) {
                         $breadcrumbs = array();
                         while ($parent_id) {
@@ -172,7 +177,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
                         $breadcrumbs = array_reverse($breadcrumbs);
                         for ($i = 0; $i < count($breadcrumbs); $i++) {
                             echo $breadcrumbs[$i];
-                            if ($i != count($breadcrumbs)-1) echo $args['delimiter'];
+                            if ($i != count($breadcrumbs) - 1) echo $args['delimiter'];
                         }
                     }
                     if ($args['show_current']) {
@@ -180,33 +185,33 @@ if (!class_exists('Atf_Breadcrumbs')) {
                         echo $args['before_current'] . get_the_title() . $args['after_current'];
                     }
 
-                } elseif ( is_tag() ) {
+                } elseif (is_tag()) {
                     echo $args['before_current'] . sprintf($args['text_tag'], single_tag_title('', false)) . $args['after_current'];
 
 
-                } elseif ( is_author() ) {
+                } elseif (is_author()) {
                     global $author;
                     $userdata = get_userdata($author);
                     echo $args['before_current'] . sprintf($args['text_author'], $userdata->display_name) . $args['after_current'];
 
-                } elseif ( is_404() ) {
+                } elseif (is_404()) {
                     echo $args['before_current'] . $args['text_404'] . $args['after_current'];
 
-                } elseif ( has_post_format() && !is_singular() ) {
-                    echo get_post_format_string( get_post_format() );
+                } elseif (has_post_format() && !is_singular()) {
+                    echo get_post_format_string(get_post_format());
 
-                }elseif ( !is_single() && !is_page() && get_post_type() != 'post' && !is_404() ) {
+                } elseif (!is_single() && !is_page() && get_post_type() != 'post' && !is_404()) {
                     $post_type = get_post_type_object(get_post_type());
+                    var_dump(get_post_type());
                     echo $args['before_current'] . $post_type->labels->singular_name . $args['after_current'];
 
                 }
 
 
-
-                if ( get_query_var('paged') ) {
-                    if ( is_category() || is_day() || is_month() || is_year() || is_search() || is_tag() || is_author() ) echo ' (';
+                if (get_query_var('paged')) {
+                    if (is_category() || is_day() || is_month() || is_year() || is_search() || is_tag() || is_author()) echo ' (';
                     echo __('Page') . ' ' . get_query_var('paged');
-                    if ( is_category() || is_day() || is_month() || is_year() || is_search() || is_tag() || is_author() ) echo ')';
+                    if (is_category() || is_day() || is_month() || is_year() || is_search() || is_tag() || is_author()) echo ')';
                 }
 
                 echo $args['after'];
