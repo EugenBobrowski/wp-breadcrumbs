@@ -199,7 +199,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
             } elseif (has_post_format() && !is_singular()) {
                 echo get_post_format_string(get_post_format());
 
-            } elseif (is_shop()) {
+            } elseif (function_exists('is_shop') && is_shop()) {
                 echo $args['before_current'] . woocommerce_page_title(false) . $args['after_current'];
             } elseif (!is_single() && !is_page() && get_post_type() != 'post' && !is_404()) {
                 $post_type = get_post_type_object(get_post_type());
