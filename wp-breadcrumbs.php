@@ -34,6 +34,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
                 'show_title' => 1, // 1 - show the title for the links, 0 - don't show
                 'show_post_type' => true,
                 'delimiter' => '  ', // delimiter between crumbs
+                'link' => '<span typeof="v:Breadcrumb"><a rel="v:url" property="v:title" href="%1$s">%2$s</a></span>',
                 'before_current' => '<li class="active">', // tag before the current crumb
                 'after_current' => '</li>', // tag after the current crumb
                 'before_crumb' => '<li>',
@@ -207,7 +208,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
                     $post_type = get_post_type_object(get_post_type());
                     $slug = $post_type->rewrite;
                     echo $args['before_crumb'];
-                    printf($link, $home_link . $slug['slug'] . '/', $post_type->labels->singular_name);
+                    printf($this->args['link'], home_url('/') . $slug['slug'] . '/', $post_type->labels->singular_name);
                     echo $args['after_crumb'];
                 }
 
@@ -217,8 +218,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
                 $cat = $cat[0];
                 $cats = $this->get_category_parents($cat, TRUE, $args['delimiter']);
                 if ($args['show_current']) $cats = preg_replace("#^(.+){$args['delimiter']}$#", "$1", $cats);
-                $cats = str_replace('<a', $link_before . '<a' . $link_attr, $cats);
-                $cats = str_replace('</a>', '</a>' . $link_after, $cats);
+
                 if ($args['show_title'] == 0) $cats = preg_replace('/ title="(.*?)"/', '', $cats);
                 echo $cats;
                 if ($args['show_current']) echo $args['before_current'] . get_the_title() . $args['after_current'];
@@ -242,7 +242,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
             }
 
             if ( $link )
-                $chain .= '<a href="' . esc_url( get_category_link( $parent->term_id ) ) . '">'.$name.'</a>' . $separator;
+                $chain .= sprintf($this->args['link'], esc_url( get_category_link( $parent->term_id ) ), $name) . $separator;
             else
                 $chain .= $name.$separator;
             return $chain;
