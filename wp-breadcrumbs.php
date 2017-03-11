@@ -10,7 +10,9 @@ if (!class_exists('Atf_Breadcrumbs')) {
     class Atf_Breadcrumbs
     {
         public $args = array();
+
         public $output;
+        public $queried_obj;
 
         public function __construct($args)
         {
@@ -51,7 +53,6 @@ if (!class_exists('Atf_Breadcrumbs')) {
             $link = $link_before . '<a' . $link_attr . ' href="%1$s">%2$s</a>' . $link_after;
             $parent_id = 0;
             $frontpage_id = get_option('page_on_front');
-            $post_types = array_keys($args['post_type_taxonomy']);
 
             if ((is_home() || is_front_page())) {
                 if (($args['show_on_home']))
@@ -68,15 +69,15 @@ if (!class_exists('Atf_Breadcrumbs')) {
 
             if (is_tax() || is_category()) {
 
-                $queried_obj = get_queried_object();
+                $this->queried_obj = get_queried_object();
 
-                $this_cat = get_term($queried_obj->term_id, $queried_obj->taxonomy);
+                $this_cat = get_term($this->queried_obj->term_id, $this->queried_obj->taxonomy);
 
                 $cats = '';
 
-                if ($this_cat->parent != 0 && is_taxonomy_hierarchical($queried_obj->taxonomy)) {
+                if ($this_cat->parent != 0 && is_taxonomy_hierarchical($this->queried_obj->taxonomy)) {
 
-                    $cats = $args['before_crumb'] . get_category_parents($this_cat->parent, TRUE, $args['after_crumb'] . $args['delimiter'] . $args['before_crumb']);
+                    $cats = $args['before_crumb'] . $this->get_category_parents($this_cat->parent, TRUE, $args['after_crumb'] . $args['delimiter'] . $args['before_crumb']);
 
                     $cats = substr($cats, 0, (strlen($cats) - strlen($args['delimiter'] . $args['before_crumb'])));
 
@@ -111,47 +112,14 @@ if (!class_exists('Atf_Breadcrumbs')) {
 
             } elseif (is_single() && !is_attachment()) {
 
-                $post_type = get_post_type();
 
-                if (in_array($post_type, $post_types)) {
-
-                    $cat = get_the_terms(false, $args['post_type_taxonomy'][$post_type]);
-                    $cat = $cat[0];
-                    $cats = $args['before_crumb'] . get_category_parents($cat, TRUE, $args['after_crumb'] . $args['delimiter'] . $args['before_crumb']);
-                    $cats = substr($cats, 0, (strlen($cats) - strlen($args['delimiter'] . $args['before_crumb'])));
-                    echo $cats;
-                    if ($args['show_current']) echo $args['before_current'] . get_the_title() . $args['after_current'];
-
-
-                } elseif ($post_type != 'post') {
-
-                    if ($args['show_post_type']) {
-                        $post_type = get_post_type_object(get_post_type());
-                        $slug = $post_type->rewrite;
-                        echo $args['before_crumb'];
-                        printf($link, $home_link . $slug['slug'] . '/', $post_type->labels->singular_name);
-                        echo $args['after_crumb'];
-                    }
-
-                    if ($args['show_current']) echo $args['delimiter'] . $args['before_current'] . get_the_title() . $args['after_current'];
-                } else {
-                    $cat = get_the_category();
-                    $cat = $cat[0];
-                    $cats = get_category_parents($cat, TRUE, $args['delimiter']);
-                    if ($args['show_current']) $cats = preg_replace("#^(.+){$args['delimiter']}$#", "$1", $cats);
-                    $cats = str_replace('<a', $link_before . '<a' . $link_attr, $cats);
-                    $cats = str_replace('</a>', '</a>' . $link_after, $cats);
-                    if ($args['show_title'] == 0) $cats = preg_replace('/ title="(.*?)"/', '', $cats);
-                    echo $cats;
-                    if ($args['show_current']) echo $args['before_current'] . get_the_title() . $args['after_current'];
-                }
 
             } elseif (is_attachment()) {
                 $parent = get_post($parent_id);
                 $cat = get_the_category($parent->ID);
                 $cat = $cat[0];
                 if ($cat) {
-                    $cats = get_category_parents($cat, TRUE, $args['delimiter']);
+                    $cats = $this->get_category_parents($cat, TRUE, $args['delimiter']);
                     $cats = str_replace('<a', $link_before . '<a' . $link_attr, $cats);
                     $cats = str_replace('</a>', '</a>' . $link_after, $cats);
                     if ($args['show_title'] == 0) $cats = preg_replace('/ title="(.*?)"/', '', $cats);
@@ -216,6 +184,68 @@ if (!class_exists('Atf_Breadcrumbs')) {
             echo $args['after'];
 
 
+        }
+
+        public function is_single () {
+            $args = $this->args;
+            $post_type = get_post_type();
+            $post_types = array_keys($args['post_type_taxonomy']);
+
+            if (in_array($post_type, $post_types)) {
+
+                $cat = get_the_terms(false, $args['post_type_taxonomy'][$post_type]);
+                $cat = $cat[0];
+                $cats = $args['before_crumb'] . $this->get_category_parents($cat, TRUE, $args['after_crumb'] . $args['delimiter'] . $args['before_crumb']);
+                $cats = substr($cats, 0, (strlen($cats) - strlen($args['delimiter'] . $args['before_crumb'])));
+                echo $cats;
+                if ($args['show_current']) echo $args['before_current'] . get_the_title() . $args['after_current'];
+
+
+            } elseif ($post_type != 'post') {
+
+                if ($args['show_post_type']) {
+                    $post_type = get_post_type_object(get_post_type());
+                    $slug = $post_type->rewrite;
+                    echo $args['before_crumb'];
+                    printf($link, $home_link . $slug['slug'] . '/', $post_type->labels->singular_name);
+                    echo $args['after_crumb'];
+                }
+
+                if ($args['show_current']) echo $args['delimiter'] . $args['before_current'] . get_the_title() . $args['after_current'];
+            } else {
+                $cat = get_the_category();
+                $cat = $cat[0];
+                $cats = $this->get_category_parents($cat, TRUE, $args['delimiter']);
+                if ($args['show_current']) $cats = preg_replace("#^(.+){$args['delimiter']}$#", "$1", $cats);
+                $cats = str_replace('<a', $link_before . '<a' . $link_attr, $cats);
+                $cats = str_replace('</a>', '</a>' . $link_after, $cats);
+                if ($args['show_title'] == 0) $cats = preg_replace('/ title="(.*?)"/', '', $cats);
+                echo $cats;
+                if ($args['show_current']) echo $args['before_current'] . get_the_title() . $args['after_current'];
+            }
+        }
+
+        public function get_category_parents( $id, $link = false, $separator = '/', $nicename = false, $visited = array() ) {
+            $chain = '';
+            $parent = get_term( $id, $this->queried_obj->taxonomy );
+            if ( is_wp_error( $parent ) )
+                return $parent;
+
+            if ( $nicename )
+                $name = $parent->slug;
+            else
+                $name = $parent->name;
+
+            if ( $parent->parent && ( $parent->parent != $parent->term_id ) && !in_array( $parent->parent, $visited ) ) {
+                $visited[] = $parent->parent;
+                $chain .= $this->get_category_parents( $parent->parent, $link, $separator, $nicename, $visited );
+            }
+
+            if ( $link )
+                $chain .= '<a href="' . esc_url( get_category_link( $parent->term_id ) ) . '">'.$name.'</a>' . $separator;
+            else
+                $chain .= $name.$separator;
+            return $chain;
         }
     }
 }
