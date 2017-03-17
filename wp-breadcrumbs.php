@@ -13,6 +13,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
 
         public $output;
         public $queried_obj;
+        public $taxonomy;
 
         public function __construct($args)
         {
@@ -57,7 +58,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
 
             if ((is_home() || is_front_page())) {
                 if (($args['show_on_home']))
-                    echo  $args['before'] . $args['before_current'] . '<div class="breadcrumbs"><a href="' . $home_link . '">' . $args['text_home'] . '</a>' . $args['after_current'] . $args['after'];
+                    echo $args['before'] . $args['before_current'] . '<div class="breadcrumbs"><a href="' . $home_link . '">' . $args['text_home'] . '</a>' . $args['after_current'] . $args['after'];
                 return;
             }
 
@@ -68,15 +69,17 @@ if (!class_exists('Atf_Breadcrumbs')) {
                 if ($frontpage_id == 0 || $parent_id != $frontpage_id) echo $args['delimiter'];
             }
 
+            $this->queried_obj = get_queried_object();
+
             if (is_tax() || is_category()) {
 
-                $this->queried_obj = get_queried_object();
+                $this->taxonomy = $this->queried_obj->taxonomy;
 
-                $this_cat = get_term($this->queried_obj->term_id, $this->queried_obj->taxonomy);
+                $this_cat = get_term($this->queried_obj->term_id, $this->taxonomy);
 
                 $cats = '';
 
-                if ($this_cat->parent != 0 && is_taxonomy_hierarchical($this->queried_obj->taxonomy)) {
+                if ($this_cat->parent != 0 && is_taxonomy_hierarchical($this->taxonomy)) {
 
                     $cats = $args['before_crumb'] . $this->get_category_parents($this_cat->parent, TRUE, $args['after_crumb'] . $args['delimiter'] . $args['before_crumb']);
 
@@ -112,9 +115,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
                 echo $args['before_current'] . get_the_time('Y') . $args['after_current'];
 
             } elseif (is_single() && !is_attachment()) {
-
-
-
+                $this->is_single();
             } elseif (is_attachment()) {
                 $parent = get_post($parent_id);
                 $cat = get_the_category($parent->ID);
@@ -187,7 +188,8 @@ if (!class_exists('Atf_Breadcrumbs')) {
 
         }
 
-        public function is_single () {
+        public function is_single()
+        {
             $args = $this->args;
             $post_type = get_post_type();
             $post_types = array_keys($args['post_type_taxonomy']);
@@ -196,6 +198,7 @@ if (!class_exists('Atf_Breadcrumbs')) {
 
                 $cat = get_the_terms(false, $args['post_type_taxonomy'][$post_type]);
                 $cat = $cat[0];
+                $this->taxonomy = $cat->taxonomy;
                 $cats = $args['before_crumb'] . $this->get_category_parents($cat, TRUE, $args['after_crumb'] . $args['delimiter'] . $args['before_crumb']);
                 $cats = substr($cats, 0, (strlen($cats) - strlen($args['delimiter'] . $args['before_crumb'])));
                 echo $cats;
@@ -225,26 +228,27 @@ if (!class_exists('Atf_Breadcrumbs')) {
             }
         }
 
-        public function get_category_parents( $id, $link = false, $separator = '/', $nicename = false, $visited = array() ) {
+        public function get_category_parents($id, $link = false, $separator = '/', $nicename = false, $visited = array())
+        {
             $chain = '';
-            $parent = get_term( $id, $this->queried_obj->taxonomy );
-            if ( is_wp_error( $parent ) )
+            $parent = get_term($id, $this->taxonomy);
+            if (is_wp_error($parent))
                 return $parent;
 
-            if ( $nicename )
+            if ($nicename)
                 $name = $parent->slug;
             else
                 $name = $parent->name;
 
-            if ( $parent->parent && ( $parent->parent != $parent->term_id ) && !in_array( $parent->parent, $visited ) ) {
+            if ($parent->parent && ($parent->parent != $parent->term_id) && !in_array($parent->parent, $visited)) {
                 $visited[] = $parent->parent;
-                $chain .= $this->get_category_parents( $parent->parent, $link, $separator, $nicename, $visited );
+                $chain .= $this->get_category_parents($parent->parent, $link, $separator, $nicename, $visited);
             }
 
-            if ( $link )
-                $chain .= sprintf($this->args['link'], esc_url( get_category_link( $parent->term_id ) ), $name) . $separator;
+            if ($link)
+                $chain .= sprintf($this->args['link'], esc_url(get_category_link($parent->term_id)), $name) . $separator;
             else
-                $chain .= $name.$separator;
+                $chain .= $name . $separator;
             return $chain;
         }
     }
